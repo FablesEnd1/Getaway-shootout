@@ -19,9 +19,10 @@
 <div id="loading"><div>Loading Getaway Shootout...</div><div id="barOuter"><div id="bar"></div></div></div>\n<pre id="errorLog"></pre>
 <script>
 (function(){
-const loading=document.getElementById("loading"),bar=document.getElementById("bar");
-window.addEventListener("error",e=>console.error("Game error:",e.message,e.filename,e.lineno));
-window.addEventListener("unhandledrejection",e=>console.error("Game promise error:",e.reason));
+const loading=document.getElementById("loading"),bar=document.getElementById("bar"),errorLog=document.getElementById("errorLog");
+function reportError(label,detail){const line=label+": "+String(detail&&detail.stack||detail||"Unknown error");errorLog.style.display="block";errorLog.textContent=(errorLog.textContent+"\n"+line).trim();console.error(line);}
+window.addEventListener("error",e=>reportError("Browser error",e.message+" ("+e.filename+":"+e.lineno+")"));
+window.addEventListener("unhandledrejection",e=>reportError("Promise rejection",e.reason));
 const files=[
 ["loader","Build/loader-v2.js"],
 ["data","Build/864872d3e8c17c58e54028c101dae7a5.data.br"],
@@ -30,6 +31,7 @@ const files=[
 ["music","StreamingAssets/Music.aac"]
 ];
 const canvas=document.getElementById("game-canvas");
+canvas.addEventListener("webglcontextlost",e=>{e.preventDefault();reportError("WebGL context lost","The graphics context was lost while running the level.");});
 const script=document.createElement("script");script.src=files[0][1];
 script.onerror=()=>reportError("Loader error","Could not load "+script.src);
 script.onload=()=>{
@@ -42,8 +44,8 @@ companyName:"Game",
 productName:"Getaway Shootout",
 productVersion:"1.2.3",
 print:m=>console.log(m),
-printErr:m=>console.error(m),
-showBanner:(m,t)=>{(t==="error"?console.error:console.warn)(m)}
+printErr:m=>reportError("Unity error",m),
+showBanner:(m,t)=>{if(t==="error")reportError("Unity banner",m);else console.warn(m)}
 };
 createUnityInstance(canvas,config,p=>{bar.style.width=(100*p)+"%";}).then(instance=>{
 window.unityInstance=instance;loading.style.display="none";
