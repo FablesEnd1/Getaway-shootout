@@ -11,11 +11,12 @@
 #loading{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:white;font:16px Arial;background:#000;z-index:2}
 #barOuter{width:min(70vw,360px);height:10px;border:1px solid #888;border-radius:20px;overflow:hidden}
 #bar{width:0;height:100%;background:#fff}
+#errorLog{display:none;position:fixed;left:8px;right:8px;bottom:8px;max-height:34vh;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;background:rgba(0,0,0,.92);color:#ffb3b3;border:1px solid #a44;padding:10px;font:12px/1.4 monospace;z-index:10}
 </style>
 </head>
 <body>
 <div id="game"><canvas id="game-canvas" tabindex="-1"></canvas></div>
-<div id="loading"><div>Loading Getaway Shootout...</div><div id="barOuter"><div id="bar"></div></div></div>
+<div id="loading"><div>Loading Getaway Shootout...</div><div id="barOuter"><div id="bar"></div></div></div>\n<pre id="errorLog"></pre>
 <script>
 (function(){
 const loading=document.getElementById("loading"),bar=document.getElementById("bar");
@@ -30,7 +31,7 @@ const files=[
 ];
 const canvas=document.getElementById("game-canvas");
 const script=document.createElement("script");script.src=files[0][1];
-script.onerror=()=>console.error("Unity loader failed to load.");
+script.onerror=()=>reportError("Loader error","Could not load "+script.src);
 script.onload=()=>{
 const config={
 dataUrl:files[1][1],
@@ -46,7 +47,7 @@ showBanner:(m,t)=>{(t==="error"?console.error:console.warn)(m)}
 };
 createUnityInstance(canvas,config,p=>{bar.style.width=(100*p)+"%";}).then(instance=>{
 window.unityInstance=instance;loading.style.display="none";
-}).catch(e=>{console.error("Unity startup failed:",e);loading.style.display="none";});
+}).catch(e=>{reportError("Unity startup failed",e);loading.style.display="none";});
 };
 document.body.appendChild(script);
 })();
