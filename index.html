@@ -26,7 +26,7 @@ function log(m){debug.textContent+="\n"+String(m);debug.scrollTop=debug.scrollHe
 window.addEventListener("error",e=>log("WINDOW ERROR: "+(e.message||e.error||"unknown")+" @ "+(e.filename||"")+" : "+(e.lineno||"")));
 window.addEventListener("unhandledrejection",e=>log("PROMISE ERROR: "+(e.reason&&e.reason.stack||e.reason||"unknown")));
 const files=[
-["loader","Build/GS_Crazygames_v1.2.3.loader.js"],
+["loader","Build/loader-v2.js"],
 ["data","Build/864872d3e8c17c58e54028c101dae7a5.data.br"],
 ["framework","Build/frame.js"],
 ["wasm","Build/c0f8b2f06ae4c7c89b1e883b3d07ca8f.wasm.wasm"],
