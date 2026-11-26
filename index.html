@@ -1,61 +1,64 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>Getaway Shootout</title>
-  <style>
-    * { box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #000; }
-    #game { position: fixed; inset: 0; width: 100%; height: 100%; }
-    #game canvas { width: 100%; height: 100%; display: block; outline: none; }
-    #loading { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: white; font: 16px Arial, sans-serif; background: #000; }
-    #barOuter { width: min( min(70vw, 360px), 85vw); height: 10px; border: 1px solid #888; border-radius: 20px; overflow: hidden; }
-    #bar { width: 0%; height: 100%; background: #fff; }
-    #error { display: none; position: fixed; left: 5%; right: 5%; bottom: 5%; padding: 12px; color: white; background: #7b1111; font: 14px Arial, sans-serif; overflow-wrap: anywhere; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Getaway Shootout</title>
+<style>
+*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#777}
+#game{position:fixed;inset:0;width:100%;height:100%}
+#game canvas{width:100%;height:100%;display:block;outline:none}
+#loading{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:white;font:16px Arial;background:#000;z-index:2}
+#barOuter{width:min(70vw,360px);height:10px;border:1px solid #888;border-radius:20px;overflow:hidden}
+#bar{width:0;height:100%;background:#fff}
+#debug{position:fixed;z-index:5;left:8px;right:8px;bottom:8px;max-height:42vh;overflow:auto;padding:10px;background:rgba(0,0,0,.88);color:#fff;font:12px/1.4 monospace;white-space:pre-wrap;overflow-wrap:anywhere;display:block}
+#debug.hidden{display:none}
+</style>
 </head>
 <body>
-  <div id="game"><canvas id="game-canvas" tabindex="-1"></canvas></div>
-  <div id="loading">
-    <div>Loading Getaway Shootout...</div>
-    <div id="barOuter"><div id="bar"></div></div>
-  </div>
-  <div id="error"></div>
-
-  <script src="Build/GS_Crazygames_v1.2.3.loader.js"></script>
-  <script>
-    const canvas = document.getElementById("game-canvas");
-    const loading = document.getElementById("loading");
-    const bar = document.getElementById("bar");
-    const errorBox = document.getElementById("error");
-
-    function showError(message) {
-      errorBox.style.display = "block";
-      errorBox.textContent = "Game failed to start: " + message;
-      loading.style.display = "none";
-    }
-
-    const config = {
-      dataUrl: "Build/864872d3e8c17c58e54028c101dae7a5.data.br",
-      frameworkUrl: "Build/dbc6f14bf976310a49dda5b1237392f2.js.js",
-      codeUrl: "Build/c0f8b2f06ae4c7c89b1e883b3d07ca8f.wasm.wasm",
-      streamingAssetsUrl: "StreamingAssets",
-      companyName: "Game",
-      productName: "Getaway Shootout",
-      productVersion: "1.2.3",
-      showBanner: function (message, type) {
-        if (type === "error") showError(message);
-        else console.warn(message);
-      }
-    };
-
-    createUnityInstance(canvas, config, function (progress) {
-      bar.style.width = (100 * progress) + "%";
-    }).then(function (instance) {
-      loading.style.display = "none";
-      window.unityInstance = instance;
-    }).catch(showError);
-  </script>
+<div id="game"><canvas id="game-canvas" tabindex="-1"></canvas></div>
+<div id="loading"><div>Loading Getaway Shootout...</div><div id="barOuter"><div id="bar"></div></div></div>
+<pre id="debug">Diagnostics starting...</pre>
+<script>
+(function(){
+const debug=document.getElementById("debug"),loading=document.getElementById("loading"),bar=document.getElementById("bar");
+function log(m){debug.textContent+="\n"+String(m);debug.scrollTop=debug.scrollHeight;}
+window.addEventListener("error",e=>log("WINDOW ERROR: "+(e.message||e.error||"unknown")+" @ "+(e.filename||"")+" : "+(e.lineno||"")));
+window.addEventListener("unhandledrejection",e=>log("PROMISE ERROR: "+(e.reason&&e.reason.stack||e.reason||"unknown")));
+const files=[
+["loader","Build/GS_Crazygames_v1.2.3.loader.js"],
+["data","Build/864872d3e8c17c58e54028c101dae7a5.data.br"],
+["framework","Build/dbc6f14bf976310a49dda5b1237392f2.js.js"],
+["wasm","Build/c0f8b2f06ae4c7c89b1e883b3d07ca8f.wasm.wasm"],
+["music","StreamingAssets/Music.aac"]
+];
+Promise.all(files.map(async x=>{try{const r=await fetch(x[1],{method:"HEAD",cache:"no-store"});log(x[0]+": HTTP "+r.status+" | "+(r.headers.get("content-type")||"no content-type")+" | encoding="+(r.headers.get("content-encoding")||"none"));}catch(e){log(x[0]+": CHECK FAILED "+e);}}));
+log("Browser: "+navigator.userAgent);
+log("WebGL2: "+!!document.createElement("canvas").getContext("webgl2")+" | WebAssembly: "+(typeof WebAssembly));
+const canvas=document.getElementById("game-canvas");
+const script=document.createElement("script");script.src=files[0][1];
+script.onerror=()=>log("LOADER SCRIPT FAILED TO LOAD");
+script.onload=()=>{
+log("Loader script loaded.");
+const config={
+dataUrl:files[1][1],
+frameworkUrl:files[2][1],
+codeUrl:files[3][1],
+streamingAssetsUrl:"StreamingAssets",
+companyName:"Game",
+productName:"Getaway Shootout",
+productVersion:"1.2.3",
+print:m=>log("UNITY: "+m),
+printErr:m=>log("UNITY ERROR: "+m),
+showBanner:(m,t)=>log("UNITY "+t+": "+m)
+};
+log("Starting Unity...");
+createUnityInstance(canvas,config,p=>{bar.style.width=(100*p)+"%";}).then(instance=>{
+window.unityInstance=instance;loading.style.display="none";log("Unity instance started; if canvas remains gray, send this log.");
+}).catch(e=>{log("UNITY STARTUP FAILED: "+(e&&e.stack||e));loading.style.display="none";});
+};
+document.body.appendChild(script);
+})();
+</script>
 </body>
 </html>
