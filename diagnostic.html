@@ -28,6 +28,15 @@ function log(label,detail){
  errorLog.textContent=lines.join("\n");logButton.textContent="Show log ("+lines.length+")";
  console.log(line);
 }
+// Capture failed requests that may only happen when a level loads.
+const originalFetch=window.fetch;
+if(originalFetch) window.fetch=function(){const args=arguments;return originalFetch.apply(this,args).then(response=>{if(!response.ok)log("Fetch failed",response.status+" "+response.url);return response;}).catch(err=>{log("Fetch error",err);throw err;});};
+const originalOpen=XMLHttpRequest.prototype.open,originalSend=XMLHttpRequest.prototype.send;
+XMLHttpRequest.prototype.open=function(method,url){this.__diagUrl=url;return originalOpen.apply(this,arguments);};
+XMLHttpRequest.prototype.send=function(){this.addEventListener("load",function(){if(this.status>=400||this.status===0)log("XHR failed",this.status+" "+this.__diagUrl);});this.addEventListener("error",()=>log("XHR error",this.__diagUrl));return originalSend.apply(this,arguments);};
+window.addEventListener("error",e=>{if(e.target&&e.target!==window)log("Resource failed",e.target.src||e.target.href||e.target.tagName);},true);
+const originalConsoleError=console.error;
+console.error=function(){log("Console error",Array.from(arguments).join(" "));return originalConsoleError.apply(console,arguments);};
 logButton.addEventListener("click",()=>{const open=errorLog.style.display==="block";errorLog.style.display=open?"none":"block";logButton.textContent=(open?"Show":"Hide")+" log ("+lines.length+")";});
 window.addEventListener("error",e=>log("Browser error",e.message+" ("+e.filename+":"+e.lineno+")"));
 window.addEventListener("unhandledrejection",e=>log("Promise rejection",e.reason));
