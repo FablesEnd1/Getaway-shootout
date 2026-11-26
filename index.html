@@ -44,7 +44,7 @@ companyName:"Game",
 productName:"Getaway Shootout",
 productVersion:"1.2.3",
 print:m=>console.log(m),
-printErr:m=>reportError("Unity error",m),
+printErr:m=>console.warn("[Unity]",m),
 showBanner:(m,t)=>{if(t==="error")reportError("Unity banner",m);else console.warn(m)}
 };
 createUnityInstance(canvas,config,p=>{bar.style.width=(100*p)+"%";}).then(instance=>{
